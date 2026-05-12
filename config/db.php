@@ -1,8 +1,9 @@
 <?php
-$host   = "127.0.0.1";  // use IP not "localhost" — avoids socket issues on Linux
-$dbname = "vehicle_rental";
-$dbuser = "root";
-$dbpass = "";  // XAMPP default is empty, WAMP may use "root"
+$host = $_ENV['DB_HOST'];
+$dbname = $_ENV['DB_NAME'];
+$dbuser = $_ENV['DB_USER'];
+$dbpass = $_ENV['DB_PASS'];
+$port = $_ENV['DB_PORT'];
 
 try {
     $pdo = new PDO(
