@@ -3,7 +3,7 @@
 
 // In production, replace '*' with your actual Vercel URL: 
 // e.g., https://your-app-name.vercel.app
-$allowed_origin = "*"; 
+$allowed_origin = "https://vehicle-frontend-murex.vercel.app";
 
 header("Access-Control-Allow-Origin: " . $allowed_origin);
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
