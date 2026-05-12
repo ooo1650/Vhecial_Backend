@@ -14,8 +14,12 @@ RUN apt-get update && apt-get install -y \
 
 # ── Apache config ─────────────────────────────────────────────────────────
 RUN a2enmod rewrite headers
+# Suppress Apache ServerName warning
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-COPY apache.conf /etc/apache2/sites-available/000-default.conf
+# Optional: If you don't have a custom apache.conf yet, you can skip this 
+# or use the default. If you HAVE one, make sure it's in the root.
+# COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
 # ── Install Composer ──────────────────────────────────────────────────────
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -25,14 +29,14 @@ COPY . /var/www/html/
 
 WORKDIR /var/www/html
 
-# ── Install PHP dependencies (PHPMailer) ──────────────────────────────────
-# composer.json lives one level up; copy it in so we can install here
-COPY ../composer.json ./composer.json
+# ── Install PHP dependencies ──────────────────────────────────
+# Use the local path, not ../
+COPY composer.json composer.lock* ./
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # ── Uploads directory permissions ─────────────────────────────────────────
 RUN mkdir -p uploads/avatars uploads/vehicles \
-    && chown -R www-data:www-data uploads \
-    && chmod -R 775 uploads
+    && chown -R www-data:www-data /var/www/html/uploads \
+    && chmod -R 775 /var/www/html/uploads
 
 EXPOSE 80
