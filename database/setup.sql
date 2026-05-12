@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS vehicle_rental;
-USE vehicle_rental;
-
 -- ── Admin ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
