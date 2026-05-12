@@ -4,7 +4,7 @@ $host = getenv('DB_HOST') ?: "mysql-75611d1-sudipdahal887-3c3f.h.aivencloud.com"
 $port = getenv('DB_PORT') ?: "11111";
 $user = getenv('DB_USER') ?: "avnadmin";
 $pass = getenv('DB_PASS') ?: "AVNS_sh8B7SXCJqe5cLZUTDI";
-$db = getenv('DB_NAME') ?: "vehicle_rental"; // Use the schema from your logs
+$db = getenv('DB_NAME') ?: "defaultdb"; // Use the schema from your logs
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
