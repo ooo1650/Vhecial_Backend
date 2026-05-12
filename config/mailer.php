@@ -2,7 +2,11 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+// vendor/ is at the backend root in Docker, or two levels up in XAMPP
+$autoload = file_exists(__DIR__ . '/vendor/autoload.php')
+    ? __DIR__ . '/vendor/autoload.php'
+    : __DIR__ . '/../../vendor/autoload.php';
+require_once $autoload;
 require_once __DIR__ . '/mail.php';
 
 /**
