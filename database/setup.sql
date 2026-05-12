@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS defaultdb;
+USE defaultdb;
+
 -- ── Admin ──────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
