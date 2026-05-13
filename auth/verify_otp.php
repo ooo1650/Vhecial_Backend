@@ -6,9 +6,9 @@ $body  = json_decode(file_get_contents("php://input"), true);
 $email = trim($body['email'] ?? '');
 $otp   = trim($body['otp']   ?? '');
 
-if (empty($email)) die(json_encode(["success" => false, "message" => "Email is required"]));
-if (empty($otp))   die(json_encode(["success" => false, "message" => "OTP is required"]));
-if (strlen($otp) !== 6) die(json_encode(["success" => false, "message" => "OTP must be 6 digits"]));
+if (empty($email)) { http_response_code(400); die(json_encode(["success" => false, "message" => "Email is required"])); }
+if (empty($otp))   { http_response_code(400); die(json_encode(["success" => false, "message" => "OTP is required"])); }
+if (strlen($otp) !== 6) { http_response_code(400); die(json_encode(["success" => false, "message" => "OTP must be 6 digits"])); }
 
 // Find valid unused OTP
 $stmt = $pdo->prepare("

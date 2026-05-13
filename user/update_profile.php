@@ -8,20 +8,20 @@ $given_name  = trim($body['given_name']  ?? '');
 $family_name = trim($body['family_name'] ?? '');
 $dob         = trim($body['dob']         ?? '');
 
-if (empty($email))      die(json_encode(["success" => false, "message" => "Email is required"]));
-if (empty($given_name)) die(json_encode(["success" => false, "message" => "First name is required"]));
+if (empty($email))      { http_response_code(400); die(json_encode(["success" => false, "message" => "Email is required"])); }
+if (empty($given_name)) { http_response_code(400); die(json_encode(["success" => false, "message" => "First name is required"])); }
 
 // Validate DOB if provided
 if ($dob) {
     $d = DateTime::createFromFormat('Y-m-d', $dob);
-    if (!$d) die(json_encode(["success" => false, "message" => "Invalid date of birth"]));
+    if (!$d) { http_response_code(400); die(json_encode(["success" => false, "message" => "Invalid date of birth"])); }
     $age = $d->diff(new DateTime())->y;
-    if ($age < 18) die(json_encode(["success" => false, "message" => "You must be at least 18 years old"]));
+    if ($age < 18) { http_response_code(400); die(json_encode(["success" => false, "message" => "You must be at least 18 years old"])); }
 }
 
 $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
 $stmt->execute([$email]);
-if (!$stmt->fetch()) die(json_encode(["success" => false, "message" => "User not found"]));
+if (!$stmt->fetch()) { http_response_code(404); die(json_encode(["success" => false, "message" => "User not found"])); }
 
 $username = trim("$given_name $family_name");
 

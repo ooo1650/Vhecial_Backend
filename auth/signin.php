@@ -8,9 +8,9 @@ $email    = trim($body['email']    ?? '');
 $password = trim($body['password'] ?? '');
 
 // Validate inputs
-if (empty($email))    die(json_encode(["success" => false, "message" => "Email is required"]));
-if (empty($password)) die(json_encode(["success" => false, "message" => "Password is required"]));
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) die(json_encode(["success" => false, "message" => "Invalid email address"]));
+if (empty($email))    { http_response_code(400); die(json_encode(["success" => false, "message" => "Email is required"])); }
+if (empty($password)) { http_response_code(400); die(json_encode(["success" => false, "message" => "Password is required"])); }
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { http_response_code(400); die(json_encode(["success" => false, "message" => "Invalid email address"])); }
 
 // Find user
 $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");

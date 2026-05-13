@@ -3,9 +3,10 @@ require_once __DIR__ . '/../config/cors.php';
 require_once __DIR__ . '/../config/db.php';
 
 $email = trim($_POST['email'] ?? '');
-if (empty($email)) die(json_encode(["success" => false, "message" => "Email is required"]));
+if (empty($email)) { http_response_code(400); die(json_encode(["success" => false, "message" => "Email is required"])); }
 
 if (empty($_FILES['picture']['tmp_name'])) {
+    http_response_code(400);
     die(json_encode(["success" => false, "message" => "No file uploaded"]));
 }
 
@@ -14,9 +15,11 @@ $allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 $maxSize = 5 * 1024 * 1024;
 
 if (!in_array($file['type'], $allowed)) {
+    http_response_code(400);
     die(json_encode(["success" => false, "message" => "Only JPG, PNG, WebP or GIF allowed"]));
 }
 if ($file['size'] > $maxSize) {
+    http_response_code(400);
     die(json_encode(["success" => false, "message" => "File must be under 5MB"]));
 }
 
@@ -35,6 +38,7 @@ $dir      = __DIR__ . '/../../backend/uploads/avatars/';
 $path     = $dir . $filename;
 
 if (!move_uploaded_file($file['tmp_name'], $path)) {
+    http_response_code(500);
     die(json_encode(["success" => false, "message" => "Failed to save file"]));
 }
 
