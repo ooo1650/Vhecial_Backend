@@ -17,9 +17,7 @@ RUN a2enmod rewrite headers
 # Suppress Apache ServerName warning
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Optional: If you don't have a custom apache.conf yet, you can skip this 
-# or use the default. If you HAVE one, make sure it's in the root.
-# COPY apache.conf /etc/apache2/sites-available/000-default.conf
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
 
 # ── Install Composer ──────────────────────────────────────────────────────
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

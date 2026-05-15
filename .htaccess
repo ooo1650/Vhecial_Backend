@@ -1,0 +1,12 @@
+Options -Indexes
+AllowOverride All
+
+# Block direct access to sensitive files
+<FilesMatch "\.(env|json|lock|md|git)$">
+    Require all denied
+</FilesMatch>
+
+# Allow all PHP API files
+<FilesMatch "\.php$">
+    Require all granted
+</FilesMatch>
