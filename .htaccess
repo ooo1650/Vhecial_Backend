@@ -1,5 +1,4 @@
 Options -Indexes
-AllowOverride All
 
 # Block direct access to sensitive files
 <FilesMatch "\.(env|json|lock|md|git)$">
