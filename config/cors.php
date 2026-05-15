@@ -1,14 +1,18 @@
 <?php
 // config/cors.php
 
-// In production, replace '*' with your actual Vercel URL: 
-// e.g., https://your-app-name.vercel.app
 $allowed_origins = [
     "https://vehicle-frontend-murex.vercel.app",
     "https://vehicle-frontend-nexutaasi-ooo1650s-projects.vercel.app",
 ];
+
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed_origin = in_array($origin, $allowed_origins) ? $origin : $allowed_origins[0];
+
+// Accept any Vercel preview deployment for this project, plus explicit list
+$is_allowed = in_array($origin, $allowed_origins)
+    || preg_match('/^https:\/\/vehicle-frontend[a-z0-9\-]*\.vercel\.app$/', $origin);
+
+$allowed_origin = $is_allowed ? $origin : $allowed_origins[0];
 
 header("Access-Control-Allow-Origin: " . $allowed_origin);
 header("Content-Type: application/json; charset=UTF-8");
