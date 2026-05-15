@@ -19,6 +19,11 @@ require_once __DIR__ . '/mail.php';
 function sendMail(string $to, string $subject, string $body): array
 {
     $resendKey = getenv('RESEND_API_KEY');
+    $brevoKey  = getenv('BREVO_API_KEY');
+
+    if ($brevoKey) {
+        return _sendViaBrevo($to, $subject, $body, $brevoKey);
+    }
 
     if ($resendKey) {
         return _sendViaResend($to, $subject, $body, $resendKey);
@@ -26,6 +31,49 @@ function sendMail(string $to, string $subject, string $body): array
 
     // Fallback: PHPMailer SMTP (works locally, blocked on Render free tier)
     return _sendViaSMTP($to, $subject, $body);
+}
+
+function _sendViaBrevo(string $to, string $subject, string $body, string $apiKey): array
+{
+    $payload = json_encode([
+        'sender'     => ['name' => MAIL_FROM_NAME, 'email' => MAIL_FROM],
+        'to'         => [['email' => $to]],
+        'subject'    => $subject,
+        'textContent'=> $body,
+    ]);
+
+    $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => $payload,
+        CURLOPT_HTTPHEADER     => [
+            'api-key: ' . $apiKey,
+            'Content-Type: application/json',
+            'Accept: application/json',
+        ],
+        CURLOPT_TIMEOUT        => 15,
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlErr  = curl_error($ch);
+    curl_close($ch);
+
+    if ($curlErr) {
+        error_log("Brevo curl error to $to: $curlErr");
+        return ['sent' => false, 'error' => "Curl error: $curlErr"];
+    }
+
+    $decoded = json_decode($response, true);
+
+    if ($httpCode >= 200 && $httpCode < 300) {
+        return ['sent' => true, 'error' => null];
+    }
+
+    $err = $decoded['message'] ?? $response;
+    error_log("Brevo API error to $to (HTTP $httpCode): $err");
+    return ['sent' => false, 'error' => "Brevo error ($httpCode): $err"];
 }
 
 function _sendViaResend(string $to, string $subject, string $body, string $apiKey): array
