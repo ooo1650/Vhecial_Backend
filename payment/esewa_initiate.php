@@ -15,14 +15,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(['success' => false, 'message' => 'Method not allowed']));
 }
 
-// ── Config — reads from server env vars (Render) or falls back to sandbox defaults ──
-// On Render: set these in the dashboard Environment tab.
-// Locally:   they fall back to eSewa sandbox test values.
+// ── Config ────────────────────────────────────────────────────────────────
+// ESEWA_SECRET_KEY contains special chars (&) that can be mangled by env var UIs.
+// Sandbox key is hardcoded as fallback — override with ESEWA_SECRET_KEY in prod.
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
-$secretKey   = getenv('ESEWA_SECRET_KEY')   ?: '8gBm/:&EnhH.';
 $gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
+// Secret key: try env var first, fall back to known sandbox value
+$secretKeyEnv = getenv('ESEWA_SECRET_KEY');
+// Sandbox key is exactly: 8gBm/:&EnhH.  (13 chars)
+$secretKey = ($secretKeyEnv && strlen($secretKeyEnv) >= 10) ? $secretKeyEnv : '8gBm/:&EnhH.';
 // ── Parse request body ────────────────────────────────────────────────────
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
@@ -84,10 +87,16 @@ $bookingId = (int)$pdo->lastInsertId();
 $transactionUuid = 'BK' . $bookingId . 'T' . time();
 
 // ── Create pending payment record ─────────────────────────────────────────
-$pdo->prepare("
-    INSERT INTO payments (booking_id, user_id, amount, payment_method, status, transaction_uuid)
-    VALUES (?, ?, ?, 'esewa', 'pending', ?)
-")->execute([$bookingId, $user['id'], $total_price, $transactionUuid]);
+// Wrapped in try/catch — if payments table doesn't exist yet, we still redirect
+try {
+    $pdo->prepare("
+        INSERT INTO payments (booking_id, user_id, amount, payment_method, status, transaction_uuid)
+        VALUES (?, ?, ?, 'esewa', 'pending', ?)
+    ")->execute([$bookingId, $user['id'], $total_price, $transactionUuid]);
+} catch (PDOException $e) {
+    // Log but don't block — payments table may not exist yet
+    error_log('payments insert failed: ' . $e->getMessage());
+}
 
 // ── Build HMAC-SHA256 signature ───────────────────────────────────────────
 // eSewa V2 signed message format (exact field order matters):

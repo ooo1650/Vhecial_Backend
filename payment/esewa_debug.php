@@ -12,7 +12,9 @@ if (($_GET['secret'] ?? '') !== 'debug123') {
 }
 
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
-$secretKey   = getenv('ESEWA_SECRET_KEY')   ?: '8gBm/:&EnhH.';
+// Sandbox key hardcoded as fallback — same logic as esewa_initiate.php
+$secretKeyEnv = getenv('ESEWA_SECRET_KEY');
+$secretKey    = ($secretKeyEnv && strlen($secretKeyEnv) >= 10) ? $secretKeyEnv : '8gBm/:&EnhH.';
 $gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
@@ -52,8 +54,9 @@ header('Content-Type: text/html');
   <table>
     <tr><th>Field</th><th>Value</th></tr>
     <tr><td>product_code</td><td><?= htmlspecialchars($productCode) ?></td></tr>
-    <tr><td>secret_key</td><td><?= htmlspecialchars($secretKey) ?></td></tr>
-    <tr><td>secret_key length</td><td><?= strlen($secretKey) ?> chars</td></tr>
+    <tr><td>secret_key (raw env)</td><td><?= htmlspecialchars($secretKeyEnv ?: '(not set — using hardcoded fallback)') ?></td></tr>
+    <tr><td>secret_key (used)</td><td><?= htmlspecialchars($secretKey) ?></td></tr>
+    <tr><td>secret_key length</td><td><?= strlen($secretKey) ?> chars (expected: 13)</td></tr>
     <tr><td>total_amount</td><td><?= htmlspecialchars($amount) ?></td></tr>
     <tr><td>transaction_uuid</td><td><?= htmlspecialchars($transactionUuid) ?></td></tr>
     <tr><td>gateway_url</td><td><?= htmlspecialchars($gatewayUrl) ?></td></tr>
