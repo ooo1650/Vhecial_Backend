@@ -16,16 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // ── Config ────────────────────────────────────────────────────────────────
-// ESEWA_SECRET_KEY contains special chars (&) that can be mangled by env var UIs.
-// Sandbox key is hardcoded as fallback — override with ESEWA_SECRET_KEY in prod.
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
 $gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
-// Secret key: try env var first, fall back to known sandbox value
-$secretKeyEnv = getenv('ESEWA_SECRET_KEY');
-// Sandbox key is exactly: 8gBm/:&EnhH.  (13 chars)
-$secretKey = ($secretKeyEnv && strlen($secretKeyEnv) >= 10) ? $secretKeyEnv : '8gBm/:&EnhH.';
+// ESEWA_SECRET_KEY contains & which Render truncates — hardcode sandbox key directly.
+// For production, replace this string with your live merchant secret key.
+$secretKey = '8gBm/:&EnhH.';
 // ── Parse request body ────────────────────────────────────────────────────
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
