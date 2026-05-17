@@ -12,8 +12,8 @@ if (($_GET['secret'] ?? '') !== 'debug123') {
 }
 
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
-// Hardcoded — Render truncates & in env vars
-$secretKey   = '8gBm/:&EnhH.';
+// Full 16-char sandbox secret key from eSewa developer portal
+$secretKey   = '8gBm/:&EnhH.1/q';
 $gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 

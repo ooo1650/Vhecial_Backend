@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 // ── Config — reads from server env vars (Render) or falls back to sandbox defaults ──
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
-$secretKey   = getenv('ESEWA_SECRET_KEY')   ?: '8gBm/:&EnhH.';
+$secretKey   = '8gBm/:&EnhH.1/q'; // Full 16-char sandbox key
 $verifyUrl   = rtrim(getenv('ESEWA_VERIFY_URL') ?: 'https://rc.esewa.com.np/api/epay/transaction/status/', '/');
 
 // ── Parse body ────────────────────────────────────────────────────────────
