@@ -13,7 +13,10 @@ if ($method === 'GET') {
                u.email AS user_email,
                v.name AS vehicle_name, v.type AS vehicle_type,
                (SELECT image_path FROM vehicle_images
-                WHERE vehicle_id = v.id AND is_primary = 1 LIMIT 1) AS vehicle_image
+                WHERE vehicle_id = v.id AND is_primary = 1 LIMIT 1) AS vehicle_image,
+               (SELECT p.status FROM payments p
+                WHERE p.booking_id = b.id
+                ORDER BY p.created_at DESC LIMIT 1) AS payment_status
         FROM bookings b
         JOIN users u ON b.user_id = u.id
         JOIN vehicles v ON b.vehicle_id = v.id

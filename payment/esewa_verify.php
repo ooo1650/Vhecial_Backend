@@ -131,12 +131,12 @@ $pdo->prepare("
     WHERE id = ?
 ")->execute([$transactionCode, $transactionCode, $payment['id']]);
 
-// ── Confirm the booking ───────────────────────────────────────────────────
-$pdo->prepare("UPDATE bookings SET status = 'confirmed' WHERE id = ?")
-    ->execute([$payment['booking_id']]);
+// ── Keep booking as 'pending' — admin must still review and confirm ────────
+// Payment is verified but admin approval is required before confirming.
+// (Do NOT auto-confirm here)
 
 echo json_encode([
     'success'    => true,
-    'message'    => 'Payment verified and booking confirmed',
+    'message'    => 'Payment verified. Your booking is under review.',
     'booking_id' => $payment['booking_id'],
 ]);
