@@ -13,7 +13,18 @@ if ($method === 'GET') {
         SELECT b.*, v.name AS vehicle_name, v.type AS vehicle_type,
                v.fuel_type, v.seats, v.price_per_day,
                (SELECT image_path FROM vehicle_images
-                WHERE vehicle_id = v.id AND is_primary = 1 LIMIT 1) AS vehicle_image
+                WHERE vehicle_id = v.id AND is_primary = 1 LIMIT 1) AS vehicle_image,
+               (SELECT p.status FROM payments p
+                WHERE p.booking_id = b.id ORDER BY p.created_at DESC LIMIT 1) AS payment_status,
+               (SELECT p.amount FROM payments p
+                WHERE p.booking_id = b.id AND p.status = 'completed'
+                ORDER BY p.created_at DESC LIMIT 1) AS paid_amount,
+               (SELECT p.transaction_id FROM payments p
+                WHERE p.booking_id = b.id AND p.status = 'completed'
+                ORDER BY p.created_at DESC LIMIT 1) AS esewa_transaction_id,
+               (SELECT p.paid_at FROM payments p
+                WHERE p.booking_id = b.id AND p.status = 'completed'
+                ORDER BY p.created_at DESC LIMIT 1) AS paid_at
         FROM bookings b
         JOIN vehicles v ON b.vehicle_id = v.id
         JOIN users u ON b.user_id = u.id
