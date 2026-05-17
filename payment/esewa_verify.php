@@ -23,19 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(['success' => false, 'message' => 'Method not allowed']));
 }
 
-// ── Load .env ─────────────────────────────────────────────────────────────
-$envFile = __DIR__ . '/../.env';
-if (file_exists($envFile)) {
-    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
-        [$key, $val] = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($val);
-    }
-}
-
-$productCode = $_ENV['ESEWA_PRODUCT_CODE'] ?? 'EPAYTEST';
-$secretKey   = $_ENV['ESEWA_SECRET_KEY']   ?? '8gBm/:&EnhH.';
-$verifyUrl   = rtrim($_ENV['ESEWA_VERIFY_URL'] ?? 'https://rc.esewa.com.np/api/epay/transaction/status/', '/');
+// ── Config — reads from server env vars (Render) or falls back to sandbox defaults ──
+$productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
+$secretKey   = getenv('ESEWA_SECRET_KEY')   ?: '8gBm/:&EnhH.';
+$verifyUrl   = rtrim(getenv('ESEWA_VERIFY_URL') ?: 'https://rc.esewa.com.np/api/epay/transaction/status/', '/');
 
 // ── Parse body ────────────────────────────────────────────────────────────
 $body = json_decode(file_get_contents('php://input'), true) ?? [];

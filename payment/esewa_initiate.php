@@ -5,10 +5,6 @@
  * Creates a booking record (status=pending) and returns the signed
  * eSewa ePay V2 form parameters so the frontend can redirect the user
  * to the eSewa sandbox checkout page.
- *
- * Body (JSON):
- *   email, vehicle_id, start_date, end_date, total_price,
- *   pickup_location, dropoff_location, contact_phone
  */
 
 require_once __DIR__ . '/../config/cors.php';
@@ -19,20 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(['success' => false, 'message' => 'Method not allowed']));
 }
 
-// ── Load .env values ──────────────────────────────────────────────────────
-$envFile = __DIR__ . '/../.env';
-if (file_exists($envFile)) {
-    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
-        [$key, $val] = explode('=', $line, 2);
-        $_ENV[trim($key)] = trim($val);
-    }
-}
-
-$productCode = $_ENV['ESEWA_PRODUCT_CODE'] ?? 'EPAYTEST';
-$secretKey   = $_ENV['ESEWA_SECRET_KEY']   ?? '8gBm/:&EnhH.';
-$gatewayUrl  = $_ENV['ESEWA_GATEWAY_URL']  ?? 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
-$appUrl      = rtrim($_ENV['APP_URL'] ?? 'http://localhost:5173', '/');
+// ── Config — reads from server env vars (Render) or falls back to sandbox defaults ──
+// On Render: set these in the dashboard Environment tab.
+// Locally:   they fall back to eSewa sandbox test values.
+$productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
+$secretKey   = getenv('ESEWA_SECRET_KEY')   ?: '8gBm/:&EnhH.';
+$gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+$appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
 // ── Parse request body ────────────────────────────────────────────────────
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -78,7 +67,7 @@ if (!$stmt->fetch()) {
     die(json_encode(['success' => false, 'message' => 'Vehicle is not available']));
 }
 
-// ── Create booking (status = pending) ────────────────────────────────────
+// ── Create booking (status = pending, payment_status = unpaid) ───────────
 $pdo->prepare("
     INSERT INTO bookings
         (user_id, vehicle_id, start_date, end_date, total_price,
@@ -90,8 +79,9 @@ $pdo->prepare("
 ]);
 $bookingId = (int)$pdo->lastInsertId();
 
-// ── Generate unique transaction UUID ─────────────────────────────────────
-$transactionUuid = 'BK-' . $bookingId . '-' . time();
+// ── Unique transaction UUID ───────────────────────────────────────────────
+// Keep it short and alphanumeric — no hyphens in the UUID part confuse some parsers
+$transactionUuid = 'BK' . $bookingId . 'T' . time();
 
 // ── Create pending payment record ─────────────────────────────────────────
 $pdo->prepare("
@@ -100,14 +90,19 @@ $pdo->prepare("
 ")->execute([$bookingId, $user['id'], $total_price, $transactionUuid]);
 
 // ── Build HMAC-SHA256 signature ───────────────────────────────────────────
-// eSewa V2 signature message: "total_amount=<amt>,transaction_uuid=<uuid>,product_code=<code>"
-$taxAmount     = 0;
-$serviceCharge = 0;
-$deliveryCharge = 0;
-$totalAmount   = number_format($total_price, 2, '.', '');
+// eSewa V2 signed message format (exact field order matters):
+//   "total_amount=<X>,transaction_uuid=<Y>,product_code=<Z>"
+// Amount must be formatted as a plain decimal, no thousands separator.
+$totalAmount = number_format($total_price, 2, '.', '');
 
 $signatureMessage = "total_amount={$totalAmount},transaction_uuid={$transactionUuid},product_code={$productCode}";
-$signature = base64_encode(hash_hmac('sha256', $signatureMessage, $secretKey, true));
+$signature        = base64_encode(hash_hmac('sha256', $signatureMessage, $secretKey, true));
+
+// ── Debug info (remove in production) ────────────────────────────────────
+// Uncomment temporarily if signature keeps failing:
+// error_log("eSewa sig msg: $signatureMessage");
+// error_log("eSewa secret:  $secretKey");
+// error_log("eSewa sig:     $signature");
 
 // ── Return params to frontend ─────────────────────────────────────────────
 echo json_encode([
@@ -115,16 +110,16 @@ echo json_encode([
     'booking_id'  => $bookingId,
     'gateway_url' => $gatewayUrl,
     'params'      => [
-        'amount'           => $totalAmount,
-        'tax_amount'       => '0',
-        'total_amount'     => $totalAmount,
-        'transaction_uuid' => $transactionUuid,
-        'product_code'     => $productCode,
+        'amount'                  => $totalAmount,
+        'tax_amount'              => '0',
+        'total_amount'            => $totalAmount,
+        'transaction_uuid'        => $transactionUuid,
+        'product_code'            => $productCode,
         'product_service_charge'  => '0',
         'product_delivery_charge' => '0',
-        'success_url'      => $appUrl . '/payment/esewa/success',
-        'failure_url'      => $appUrl . '/payment/esewa/failure',
-        'signed_field_names' => 'total_amount,transaction_uuid,product_code',
-        'signature'        => $signature,
+        'success_url'             => $appUrl . '/payment/esewa/success',
+        'failure_url'             => $appUrl . '/payment/esewa/failure',
+        'signed_field_names'      => 'total_amount,transaction_uuid,product_code',
+        'signature'               => $signature,
     ],
 ]);
