@@ -100,3 +100,22 @@ CREATE TABLE IF NOT EXISTS bookings (
     FOREIGN KEY (user_id)    REFERENCES users(id),
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id)
 );
+
+-- ── Payments ───────────────────────────────────────────────────────────────
+-- Tracks eSewa (and other) payment transactions linked to bookings
+CREATE TABLE IF NOT EXISTS payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    booking_id INT NOT NULL,
+    user_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(20) NOT NULL DEFAULT 'esewa',
+    status ENUM('pending','completed','failed','refunded') DEFAULT 'pending',
+    transaction_uuid VARCHAR(100) DEFAULT NULL,
+    transaction_id VARCHAR(200) DEFAULT NULL,
+    esewa_ref_id VARCHAR(200) DEFAULT NULL,
+    paid_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (booking_id) REFERENCES bookings(id),
+    FOREIGN KEY (user_id)    REFERENCES users(id)
+);
