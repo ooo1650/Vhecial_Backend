@@ -24,27 +24,33 @@ try {
     $user = $stmt->fetch();
 
     if ($user) {
-        // ── Returning user ── update picture, link google_id if missing
+        // ── Returning user — Google already verified identity, log in directly ──
         $pdo->prepare("
-            UPDATE users SET last_login = CURRENT_TIMESTAMP, picture = COALESCE(picture, ?),
+            UPDATE users SET last_login = CURRENT_TIMESTAMP,
+            picture = COALESCE(picture, ?),
             google_id = COALESCE(google_id, ?)
             WHERE email = ?
         ")->execute([$picture, $google_id, $email]);
 
-        // Send OTP for sign-in
-        $result = sendOtp($pdo, $email, $user['given_name']);
-        if (!$result['success']) {
-            http_response_code(429);
-            die(json_encode($result));
+        $pic = $user['picture'] ?: $picture;
+        if ($pic && !str_starts_with($pic, 'http')) {
+            $pic = '/api/' . $pic;
         }
 
         echo json_encode([
-            "success"      => true,
-            "is_new_user"  => false,
-            "has_password" => !empty($user['password']),
-            "email"        => $email,
-            "given_name"   => $user['given_name'],
-            "message"      => $result['message'],
+            "success"     => true,
+            "is_new_user" => false,
+            "email"       => $email,
+            "user"        => [
+                "id"           => (int) $user['id'],
+                "email"        => $user['email'],
+                "given_name"   => $user['given_name'],
+                "family_name"  => $user['family_name'],
+                "username"     => $user['username'],
+                "dob"          => $user['dob'],
+                "picture"      => $pic,
+                "auth_provider"=> $user['auth_provider'],
+            ],
         ]);
 
     } else {
