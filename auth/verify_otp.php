@@ -45,7 +45,7 @@ $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
 $stmt->execute([$email]);
 $user = $stmt->fetch();
 $picture = $user['picture'];
-if ($picture && !str_starts_with($picture, 'http')) {
+if ($picture && !str_starts_with($picture, 'http') && !str_starts_with($picture, 'data:')) {
     $picture = '/api/' . $picture;
 }
 

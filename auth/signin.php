@@ -38,7 +38,7 @@ if (!password_verify($password, $user['password'])) {
 $pdo->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?")->execute([$user['id']]);
 
 $picture = $user['picture'];
-if ($picture && !str_starts_with($picture, 'http')) {
+if ($picture && !str_starts_with($picture, 'http') && !str_starts_with($picture, 'data:')) {
     $picture = '/api/' . $picture;
 }
 
