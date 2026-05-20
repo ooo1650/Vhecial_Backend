@@ -28,14 +28,18 @@ $stmt = $pdo->prepare("SELECT picture FROM users WHERE email = ?");
 $stmt->execute([$email]);
 $old = $stmt->fetchColumn();
 if ($old && !str_starts_with($old, 'http')) {
-    $oldPath = __DIR__ . '/../../backend/' . $old;
+    $oldPath = __DIR__ . '/../' . $old;
     if (file_exists($oldPath)) unlink($oldPath);
 }
 
-$ext      = pathinfo($file['name'], PATHINFO_EXTENSION);
+$ext      = pathinfo($file['name'], PATHINFO_EXTENSION) ?: 'jpg';
 $filename = uniqid('avatar_', true) . '.' . $ext;
-$dir      = __DIR__ . '/../../backend/uploads/avatars/';
+$dir      = __DIR__ . '/../uploads/avatars/';
 $path     = $dir . $filename;
+
+if (!is_dir($dir)) {
+    mkdir($dir, 0775, true);
+}
 
 if (!move_uploaded_file($file['tmp_name'], $path)) {
     http_response_code(500);

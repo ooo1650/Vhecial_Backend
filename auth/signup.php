@@ -77,10 +77,14 @@ if (!empty($_FILES['picture']['tmp_name'])) {
         die(json_encode(["success" => false, "message" => "Profile picture must be under 5MB"]));
     }
 
-    $ext          = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $ext          = pathinfo($file['name'], PATHINFO_EXTENSION) ?: 'jpg';
     $filename     = uniqid('avatar_', true) . '.' . $ext;
-    $uploadDir    = __DIR__ . '/../../backend/uploads/avatars/';
+    $uploadDir    = __DIR__ . '/../uploads/avatars/';
     $uploadPath   = $uploadDir . $filename;
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0775, true);
+    }
 
     if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
         http_response_code(500);
