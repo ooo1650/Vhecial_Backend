@@ -7,6 +7,7 @@ $email       = trim($body['email']       ?? '');
 $given_name  = trim($body['given_name']  ?? '');
 $family_name = trim($body['family_name'] ?? '');
 $dob         = trim($body['dob']         ?? '');
+$picture     = $body['picture']          ?? null; // base64 data URL or null
 
 if (empty($email))      { http_response_code(400); die(json_encode(["success" => false, "message" => "Email is required"])); }
 if (empty($given_name)) { http_response_code(400); die(json_encode(["success" => false, "message" => "First name is required"])); }
@@ -25,10 +26,17 @@ if (!$stmt->fetch()) { http_response_code(404); die(json_encode(["success" => fa
 
 $username = trim("$given_name $family_name");
 
-$pdo->prepare("
-    UPDATE users SET given_name = ?, family_name = ?, username = ?, dob = ?
-    WHERE email = ?
-")->execute([$given_name, $family_name, $username, $dob ?: null, $email]);
+if ($picture !== null) {
+    $pdo->prepare("
+        UPDATE users SET given_name = ?, family_name = ?, username = ?, dob = ?, picture = ?
+        WHERE email = ?
+    ")->execute([$given_name, $family_name, $username, $dob ?: null, $picture, $email]);
+} else {
+    $pdo->prepare("
+        UPDATE users SET given_name = ?, family_name = ?, username = ?, dob = ?
+        WHERE email = ?
+    ")->execute([$given_name, $family_name, $username, $dob ?: null, $email]);
+}
 
 echo json_encode([
     "success"     => true,
