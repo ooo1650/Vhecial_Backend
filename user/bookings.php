@@ -66,6 +66,19 @@ if ($method === 'POST') {
     if (!$contact_phone)   $errors[] = "Contact phone is required";
     if ($total_price <= 0) $errors[] = "Invalid total price";
 
+    // 45-day rental limit
+    if ($start_date && $end_date) {
+        $start = new DateTime($start_date);
+        $end   = new DateTime($end_date);
+        $diff  = (int)$start->diff($end)->days;
+        if ($diff > 45) {
+            $errors[] = "Rental period cannot exceed 45 days";
+        }
+        if ($diff <= 0) {
+            $errors[] = "End date must be after start date";
+        }
+    }
+
     if ($errors) {
         http_response_code(400);
         die(json_encode(["success" => false, "message" => implode('. ', $errors)]));
@@ -156,6 +169,17 @@ if ($method === 'PUT') {
         if (!$pickup || !$phone || !$start || !$end) {
             http_response_code(400);
             die(json_encode(["success"=>false,"message"=>"Pick-up location, phone, and dates are required"]));
+        }
+
+        // 45-day limit on edits too
+        $diffDays = (int)(new DateTime($start))->diff(new DateTime($end))->days;
+        if ($diffDays > 45) {
+            http_response_code(400);
+            die(json_encode(["success"=>false,"message"=>"Rental period cannot exceed 45 days"]));
+        }
+        if ($diffDays <= 0) {
+            http_response_code(400);
+            die(json_encode(["success"=>false,"message"=>"End date must be after start date"]));
         }
 
         $pdo->prepare("

@@ -45,6 +45,12 @@ if (!$pickup_location) $errors[] = 'Pick-up location is required';
 if (!$contact_phone)   $errors[] = 'Contact phone is required';
 if ($total_price <= 0) $errors[] = 'Invalid total price';
 
+if ($start_date && $end_date) {
+    $diff = (int)(new DateTime($start_date))->diff(new DateTime($end_date))->days;
+    if ($diff > 45) $errors[] = 'Rental period cannot exceed 45 days';
+    if ($diff <= 0) $errors[] = 'End date must be after start date';
+}
+
 if ($errors) {
     http_response_code(400);
     die(json_encode(['success' => false, 'message' => implode('. ', $errors)]));

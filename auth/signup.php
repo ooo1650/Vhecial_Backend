@@ -46,13 +46,25 @@ if ($age < 18) {
 }
 
 // ── Check if email already exists ────────────────────────────────────────
-$stmt = $pdo->prepare("SELECT id, google_id FROM users WHERE email = ?");
+$stmt = $pdo->prepare("SELECT id, given_name, google_id FROM users WHERE email = ?");
 $stmt->execute([$email]);
 $existing = $stmt->fetch();
 
 if ($existing && empty($google_id)) {
-    http_response_code(409);
-    die(json_encode(["success" => false, "message" => "An account with this email already exists. Please sign in."]));
+    // Email already registered — send OTP so they can log in directly
+    require_once __DIR__ . '/otp_helper.php';
+    $result = sendOtp($pdo, $email, $existing['given_name']);
+    if (!$result['success']) {
+        http_response_code(429);
+        die(json_encode($result));
+    }
+    echo json_encode([
+        "success"       => true,
+        "existing_user" => true,
+        "message"       => "An account with this email already exists. We've sent a sign-in code to your email.",
+        "email"         => $email,
+    ]);
+    exit;
 }
 
 // ── Handle profile picture upload ────────────────────────────────────────
