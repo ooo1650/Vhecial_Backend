@@ -51,17 +51,11 @@ $stmt->execute([$email]);
 $existing = $stmt->fetch();
 
 if ($existing && empty($google_id)) {
-    // Email already registered — send OTP so they can log in directly
-    require_once __DIR__ . '/otp_helper.php';
-    $result = sendOtp($pdo, $email, $existing['given_name']);
-    if (!$result['success']) {
-        http_response_code(429);
-        die(json_encode($result));
-    }
+    // Email already registered — tell frontend to redirect to sign in
     echo json_encode([
         "success"       => true,
         "existing_user" => true,
-        "message"       => "An account with this email already exists. We've sent a sign-in code to your email.",
+        "message"       => "An account with this email already exists. Please sign in.",
         "email"         => $email,
     ]);
     exit;
