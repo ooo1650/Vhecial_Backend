@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS users (
     family_name VARCHAR(100) DEFAULT '',
     username    VARCHAR(255) NOT NULL,
     dob DATE DEFAULT NULL,
-    picture VARCHAR(500) DEFAULT NULL,
+    picture LONGTEXT DEFAULT NULL,
     email_verified TINYINT(1) DEFAULT 0,
     auth_provider VARCHAR(20) NOT NULL DEFAULT 'email',
     password VARCHAR(255) DEFAULT NULL,
