@@ -2,7 +2,18 @@
 require_once __DIR__ . '/../config/cors.php';
 require_once __DIR__ . '/../config/db.php';
 
-$body        = json_decode(file_get_contents("php://input"), true);
+// Suppress notices/warnings that would corrupt JSON output
+error_reporting(0);
+header('Content-Type: application/json');
+
+$raw  = file_get_contents("php://input");
+$body = json_decode($raw, true);
+
+if ($body === null && json_last_error() !== JSON_ERROR_NONE) {
+    http_response_code(400);
+    die(json_encode(["success" => false, "message" => "Invalid request body — JSON parse error: " . json_last_error_msg()]));
+}
+
 $email       = trim($body['email']       ?? '');
 $given_name  = trim($body['given_name']  ?? '');
 $family_name = trim($body['family_name'] ?? '');

@@ -1,5 +1,12 @@
 Options -Indexes
 
+# Allow larger POST bodies for base64 image uploads
+<IfModule mod_php.c>
+    php_value post_max_size 10M
+    php_value upload_max_filesize 10M
+    php_value max_input_vars 5000
+</IfModule>
+
 # Block direct access to sensitive files
 <FilesMatch "\.(env|json|lock|md|git)$">
     Require all denied
