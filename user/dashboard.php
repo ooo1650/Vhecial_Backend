@@ -7,17 +7,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(["success" => false, "message" => "Method not allowed"]));
 }
 
-$body  = json_decode(file_get_contents("php://input"), true);
-$email = trim($body['email'] ?? '');
+$body = json_decode(file_get_contents("php://input"), true);
+$google_id = trim($body['google_id'] ?? '');
 
-if (empty($email)) {
+if (empty($google_id)) {
     http_response_code(400);
-    die(json_encode(["success" => false, "message" => "Missing email"]));
+    die(json_encode(["success" => false, "message" => "Missing google_id"]));
 }
 
 // Get user record
-$stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-$stmt->execute([$email]);
+$stmt = $pdo->prepare("SELECT * FROM users WHERE google_id = ?");
+$stmt->execute([$google_id]);
 $user = $stmt->fetch();
 
 if (!$user) {
