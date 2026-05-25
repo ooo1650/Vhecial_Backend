@@ -14,7 +14,7 @@ if (($_GET['secret'] ?? '') !== 'debug123') {
 $productCode = getenv('ESEWA_PRODUCT_CODE') ?: 'EPAYTEST';
 // Full 16-char sandbox secret key from eSewa developer portal
 $secretKey   = '8gBm/:&EnhH.1/q';
-$gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+$gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://uat.esewa.com.np/api/epay/main/v2/form';
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
 $amount          = number_format((float)($_GET['amount'] ?? 100), 2, '.', '');
