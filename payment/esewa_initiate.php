@@ -21,7 +21,6 @@ $gatewayUrl  = getenv('ESEWA_GATEWAY_URL')  ?: 'https://rc-epay.esewa.com.np/api
 $appUrl      = rtrim(getenv('APP_URL') ?: 'http://localhost:5173', '/');
 
 // Sandbox secret key — full 16-char value from eSewa developer portal
-// Render truncates & in env vars so hardcoded here for sandbox
 $secretKey = '8gBm/:&EnhH.1/q';
 // ── Parse request body ────────────────────────────────────────────────────
 $body = json_decode(file_get_contents('php://input'), true) ?? [];
